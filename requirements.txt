@@ -1,0 +1,7 @@
+easydict==1.13
+gdown==5.2.0
+numpy==2.0.0
+opendatasets==0.1.22
+Pillow==10.4.0
+scikit_learn==1.4.2
+tqdm==4.66.4
