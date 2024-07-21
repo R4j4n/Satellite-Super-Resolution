@@ -54,3 +54,4 @@ class SuperResolutionDataLoader(Dataset):
         img_hr = self.high_res_transforms(img)
 
         return {"lr": img_lr, "hr": img_hr}
+        # return img_hr, img_lr
