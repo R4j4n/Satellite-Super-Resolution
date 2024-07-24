@@ -17,7 +17,9 @@ from src.utils import show_image, plot_examples
 from sklearn.model_selection import train_test_split
 from src.train_validator import train_fn, validate_fn
 
-Path(root_path).joinpath("output/images").mkdir(exist_ok=True, parents=True)
+
+images_pth = str(Path(root_path).joinpath("output/images"))
+Path(images_pth).mkdir(exist_ok=True, parents=True)
 
 
 ################# Print GPU Info #####################
@@ -76,7 +78,7 @@ bce = nn.BCEWithLogitsLoss()
 vgg_loss = vggL()
 
 best_psnr = 0
-model_save_path = "output/best_model.pth"
+model_save_path = f"{str(root_path)}/output/best_model.pth"
 
 d_losses = []
 g_losses = []
@@ -171,7 +173,7 @@ plt.suptitle("Training and Validation Metrics", fontsize=16)
 plt.tight_layout(rect=[0, 0, 1, 0.96])
 
 # Save the plot
-plt.savefig("training_validation_metrics.png")
+plt.savefig(f"{str(root_path)}/output/training_validation_metrics.png")
 
 
 data = {
@@ -185,4 +187,4 @@ data = {
 
 df = pd.DataFrame(data)
 
-df.to_csv("train_metrics.csv", index=False)
+df.to_csv(f"{str(root_path)}/output/train_metrics.csv", index=False)

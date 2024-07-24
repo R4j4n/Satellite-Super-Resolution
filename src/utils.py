@@ -3,11 +3,12 @@ import torch
 import random
 from PIL import Image
 import multiprocessing
+from pathlib import Path
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 from src.data_loaders import SuperResolutionDataLoader
-from src.config import cfg
+from src.config import cfg, root_path
 
 
 class ImagesLoader(Dataset):
@@ -89,6 +90,8 @@ def show_image(train_paths):
 
 def plot_examples(gen, data_loader, epoch):
 
+    images_dir = str(Path(root_path).joinpath("output/images"))
+
     loader = data_loader
 
     fig, axs = plt.subplots(1, 3, figsize=(12, 4))
@@ -116,5 +119,5 @@ def plot_examples(gen, data_loader, epoch):
             break
 
     plt.show()
-    fig.savefig(f"output/images/epoch_{epoch}_{chosen_batch}.png")
+    fig.savefig(f"{images_dir}/epoch_{epoch}_{chosen_batch}.png")
     gen.train()
