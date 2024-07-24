@@ -1,4 +1,5 @@
 import glob
+import pandas as pd
 from pathlib import Path
 
 import torch
@@ -17,6 +18,30 @@ from sklearn.model_selection import train_test_split
 from src.train_validator import train_fn, validate_fn
 
 Path(root_path).joinpath("output/images").mkdir(exist_ok=True, parents=True)
+
+
+################# Print GPU Info #####################
+if torch.cuda.is_available():
+    print("CUDA is available. GPU details:")
+
+    num_gpus = torch.cuda.device_count()
+    print(f"Number of GPUs: {num_gpus}")
+
+    for i in range(num_gpus):
+        print(f"\nGPU {i}:")
+        print(f"  Name: {torch.cuda.get_device_name(i)}")
+        print(
+            f"  Total Memory: {torch.cuda.get_device_properties(i).total_memory / 1e9:.2f} GB"
+        )
+        print(
+            f"  Multiprocessors: {torch.cuda.get_device_properties(i).multi_processor_count}"
+        )
+        print(
+            f"  Compute Capability: {torch.cuda.get_device_properties(i).major}.{torch.cuda.get_device_properties(i).minor}"
+        )
+else:
+    print("CUDA is not available. No GPU detected.")
+#############################################################
 
 
 # get the images dataset path
@@ -148,10 +173,6 @@ plt.tight_layout(rect=[0, 0, 1, 0.96])
 # Save the plot
 plt.savefig("training_validation_metrics.png")
 
-# Show the plot
-plt.show()
-
-import pandas as pd
 
 data = {
     "d_losses": d_losses,
