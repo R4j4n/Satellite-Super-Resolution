@@ -116,5 +116,5 @@ def plot_examples(gen, data_loader, epoch):
             break
 
     plt.show()
-    plt.savefig(f"output/images/epoch_{epoch}_{chosen_batch}.png")
+    fig.savefig(f"output/images/epoch_{epoch}_{chosen_batch}.png")
     gen.train()
