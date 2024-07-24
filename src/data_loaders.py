@@ -7,7 +7,12 @@ from src.config import cfg
 
 class SuperResolutionDataLoader(Dataset):
 
-    def __init__(self, paths, mean, std) -> None:
+    def __init__(
+        self,
+        paths,
+        mean=[0.2903465, 0.31224626, 0.29810828],
+        std=[0.1457739, 0.13011318, 0.12317199],
+    ) -> None:
         super().__init__()
 
         self.items = paths
@@ -17,8 +22,8 @@ class SuperResolutionDataLoader(Dataset):
             [
                 transforms.Resize(
                     (
-                        cfg.images.high_resolution_height // 4,
-                        cfg.images.high_resolution_width // 4,
+                        cfg.images.high_resolution_height // 2,
+                        cfg.images.high_resolution_width // 2,
                     ),
                     Image.BICUBIC,
                 ),
@@ -53,5 +58,4 @@ class SuperResolutionDataLoader(Dataset):
 
         img_hr = self.high_res_transforms(img)
 
-        return {"lr": img_lr, "hr": img_hr}
-        # return img_hr, img_lr
+        return img_lr, img_hr

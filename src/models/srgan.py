@@ -1,128 +1,128 @@
 import torch
 import torch.nn as nn
-from torchvision.models import vgg19
+
+
+class ConvBlock(nn.Module):
+    # Conv -> BN -> leakyReLU
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        use_activation=True,
+        use_BatchNorm=True,
+        **kwargs
+    ):
+
+        super().__init__()
+        self.use_activation = use_activation
+        self.cnn = nn.Conv2d(in_channels, out_channels, **kwargs)
+        self.bn = nn.BatchNorm2d(out_channels) if use_BatchNorm else nn.Identity()
+        self.ac = nn.LeakyReLU(0.2, inplace=True)
+
+    def forward(self, x):
+        x1 = self.cnn(x)
+        x2 = self.bn(x1)
+        x3 = self.ac(x2)
+        return x3 if self.use_activation else x2
+
+
+class UpsampleBlock(nn.Module):
+    def __init__(self, in_channels, scale_factor):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels, in_channels * scale_factor**2, 2, 1, 1)
+        self.ps = nn.PixelShuffle(scale_factor)
+        self.ac = nn.PReLU(num_parameters=in_channels)
+
+    def forward(self, x):
+        return self.ac(self.ps(self.conv(x)))
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_features) -> None:
-        super(ResidualBlock, self).__init__()
-
-        self.residual_block = nn.Sequential(
-            nn.Conv2d(in_features, in_features, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(in_features),
-            nn.PReLU(num_parameters=in_features),
-            nn.Conv2d(in_features, in_features, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(in_features),
+    def __init__(self, in_channels):
+        super().__init__()
+        self.b1 = ConvBlock(
+            in_channels, in_channels, kernel_size=3, stride=1, padding=1
         )
 
-    def forward(self, x):
-        return x + self.residual_block(x)
-
-
-class Upsample(nn.Module):
-    def __init__(self, in_channels, scale_factor) -> None:
-        super(Upsample, self).__init__()
-        self.conv = nn.Conv2d(
+        self.b2 = ConvBlock(
             in_channels,
-            in_channels * scale_factor**2,
+            in_channels,
             kernel_size=3,
             stride=1,
             padding=1,
+            use_activation=False,
         )
-        self.pixel_shuffle = nn.PixelShuffle(scale_factor)
-        self.act = nn.PReLU()
 
     def forward(self, x):
-        return self.act(self.pixel_shuffle(self.conv(x)))
+        out = self.b1(x)
+        out = self.b2(out)
+        return out + x
 
 
 class Generator(nn.Module):
-
-    def __init__(self, in_channels=3, out_channels=3, n_residual_block=16):
-        super(Generator, self).__init__()
-
-        self.conv_inp = nn.Sequential(
-            nn.Conv2d(in_channels, 64, kernel_size=9, stride=1, padding=4),
-            nn.PReLU(num_parameters=64),
-        )
-        resblocks = [ResidualBlock(64) for _ in range(n_residual_block)]
-        self.res_block = nn.Sequential(*resblocks)
-
-        self.mid_conv = nn.Sequential(
-            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), nn.BatchNorm2d(64)
-        )
-
-        self.upsamples = nn.Sequential(
-            Upsample(64, scale_factor=2), Upsample(64, scale_factor=2)
-        )
-
-        self.final_conv = nn.Sequential(
-            nn.Conv2d(64, out_channels, kernel_size=9, stride=1, padding=4), nn.Tanh()
-        )
-
-    def forward(self, x):
-        out1 = self.conv_inp(x)
-        out = self.res_block(out1)
-        out2 = self.mid_conv(out)
-        out = torch.add(out1, out2)
-        out = self.upsamples(out)
-        out = self.final_conv(out)
-
-        return out
-
-
-class DescConv(nn.Module):
-    def __init__(self, in_channels, out_channels, use_bn=True, **kwargs) -> None:
+    def __init__(self, in_channels=3, num_channels=64, num_blocks=8):
         super().__init__()
-        self.cnn = nn.Conv2d(in_channels, out_channels, **kwargs, bias=not use_bn)
-        self.bn = nn.BatchNorm2d(out_channels) if use_bn else nn.Identity()
-        self.act = nn.LeakyReLU(0.2, inplace=True)
+        self.initial = ConvBlock(
+            in_channels,
+            num_channels,
+            kernel_size=7,
+            stride=1,
+            padding=4,
+            use_BatchNorm=False,
+        )
+        self.res = nn.Sequential(
+            *[ResidualBlock(num_channels) for i in range(num_blocks)]
+        )
+        self.conv = ConvBlock(
+            num_channels,
+            num_channels,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            use_activation=False,
+        )
+        self.up = nn.Sequential(UpsampleBlock(num_channels, scale_factor=2))
+        self.final = nn.Conv2d(
+            num_channels, in_channels, kernel_size=9, stride=1, padding=1
+        )
 
     def forward(self, x):
-        return self.act(self.bn(self.cnn(x)))
+        x = self.initial(x)
+        c = self.res(x)
+        c = self.conv(c) + x
+        c = self.up(c)
+        return torch.sigmoid(self.final(c))
 
 
 class Discriminator(nn.Module):
-    def __init__(self, in_channels=3, features=[64, 64, 128, 128, 256, 256]):
+    def __init__(self, in_channels=3, features=[64, 64, 128, 128, 256, 256, 512, 512]):
         super().__init__()
         blocks = []
         for idx, feature in enumerate(features):
             blocks.append(
-                DescConv(
+                ConvBlock(
                     in_channels,
                     feature,
                     kernel_size=3,
-                    stride=1 + idx % 2,  # 1,2,1,2,1,2......
+                    stride=idx % 2 + 1,
                     padding=1,
-                    use_bn=False if idx == 0 else True,
+                    use_activation=True,
+                    use_BatchNorm=idx != 0,
                 )
             )
             in_channels = feature
 
         self.blocks = nn.Sequential(*blocks)
-        self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d((6, 6)),
+
+        self.mlp = nn.Sequential(
+            nn.AdaptiveAvgPool2d((8, 8)),
             nn.Flatten(),
-            nn.Linear(
-                256 * 6 * 6, 1024
-            ),  # opt from last DescConv block torch.Size([5, 512, 6, 6]) so
-            # 512 * 6 * 6
+            nn.Linear(512 * 8 * 8, 1024),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(1024, 1),
         )
 
     def forward(self, x):
         x = self.blocks(x)
-        return self.classifier(x)
-
-
-class VggFeatureExtractor(nn.Module):
-    def __init__(self):
-        super(VggFeatureExtractor, self).__init__()
-        vgg19_model = vgg19(pretrained=True)
-        self.feature_extractor = nn.Sequential(
-            *list(vgg19_model.features.children())[:18]
-        )
-
-    def forward(self, img):
-        return self.feature_extractor(img)
+        x = self.mlp(x)
+        return x
