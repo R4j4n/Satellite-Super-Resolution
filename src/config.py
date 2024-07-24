@@ -29,4 +29,7 @@ c.train.batch_size = 32
 c.train.learning_rate = 3e-4
 c.train.n_cpu = multiprocessing.cpu_count() // 2
 
+c.inference = edict()
+c.inference.model_pth = str(Path(root_path).joinpath("output/best_model.pth"))
+
 cfg = c
