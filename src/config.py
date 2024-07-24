@@ -31,7 +31,7 @@ c.device.device = "cuda" if torch.cuda.is_available() else "cpu"
 # clip
 c.train = edict()
 c.train.n_epochs = 100
-c.train.batch_size = 2
+c.train.batch_size = 8
 c.train.learning_rate = 0.00008
 c.train.n_cpu = multiprocessing.cpu_count() // 2
 c.train.b1 = 0.5  # adam: decay of first order momentum of gradient

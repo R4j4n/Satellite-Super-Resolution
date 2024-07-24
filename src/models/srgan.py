@@ -83,7 +83,7 @@ class DescConv(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, in_channels=3, features=[64, 64, 128, 128, 256, 256, 512, 512]):
+    def __init__(self, in_channels=3, features=[64, 64, 128, 128, 256, 256]):
         super().__init__()
         blocks = []
         for idx, feature in enumerate(features):
@@ -104,7 +104,7 @@ class Discriminator(nn.Module):
             nn.AdaptiveAvgPool2d((6, 6)),
             nn.Flatten(),
             nn.Linear(
-                512 * 6 * 6, 1024
+                256 * 6 * 6, 1024
             ),  # opt from last DescConv block torch.Size([5, 512, 6, 6]) so
             # 512 * 6 * 6
             nn.LeakyReLU(0.2, inplace=True),
