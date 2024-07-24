@@ -12,28 +12,30 @@ class SuperResolutionDataLoader(Dataset):
         paths,
         mean=[0.2903465, 0.31224626, 0.29810828],
         std=[0.1457739, 0.13011318, 0.12317199],
+        use : bool = False
     ) -> None:
         super().__init__()
 
         self.items = paths
 
         # transforms for low resolution
-        self.low_res_transforms = transforms.Compose(
-            [
-                transforms.Resize(
-                    (
-                        cfg.images.high_resolution_height // 2,
-                        cfg.images.high_resolution_width // 2,
-                    ),
-                    Image.BICUBIC,
-                ),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=mean, std=std),
-            ]
-        )
 
-        # transforms for high resolution
-        self.high_res_transforms = transforms.Compose(
+        if use:
+            self.low_res_transforms = transforms.Compose(
+                [
+                    transforms.Resize(
+                        (
+                            cfg.images.high_resolution_height // 2,
+                            cfg.images.high_resolution_width // 2,
+                        ),
+                        Image.BICUBIC,
+                    ),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=mean, std=std),
+                ]
+            )
+
+            self.high_res_transforms = transforms.Compose(
             [
                 transforms.Resize(
                     (
@@ -45,6 +47,33 @@ class SuperResolutionDataLoader(Dataset):
                 transforms.ToTensor(),
                 transforms.Normalize(mean=mean, std=std),
             ]
+        )
+
+        else:
+            self.low_res_transforms = transforms.Compose(
+                [
+                    transforms.Resize(
+                        (
+                            cfg.images.high_resolution_height // 2,
+                            cfg.images.high_resolution_width // 2,
+                        ),
+                        Image.BICUBIC,
+                    ),
+                    transforms.ToTensor(),
+                ]
+            )
+        # transforms for high resolution
+            self.high_res_transforms = transforms.Compose(
+                [
+                    transforms.Resize(
+                        (
+                            cfg.images.high_resolution_height,
+                            cfg.images.high_resolution_width,
+                        ),
+                        Image.BICUBIC,
+                    ),
+                    transforms.ToTensor(),
+                ]
         )
 
     def __len__(self):
