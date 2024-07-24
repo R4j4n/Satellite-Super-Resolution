@@ -18,7 +18,7 @@ download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
 # Download the file
 output = "train.zip"
 final_pth = str(Path(root_pth).joinpath(output))
-# gdown.download(download_url, str(Path(root_pth).joinpath(output)), quiet=False)
+gdown.download(download_url, str(Path(root_pth).joinpath(output)), quiet=False)
 
 # Extract the downloaded zip file
 with zipfile.ZipFile(final_pth, "r") as zip_ref:
