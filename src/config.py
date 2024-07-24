@@ -24,7 +24,7 @@ c.device.device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # clip
 c.train = edict()
-c.train.n_epochs = 10
+c.train.n_epochs = 50
 c.train.batch_size = 32
 c.train.learning_rate = 3e-4
 c.train.n_cpu = multiprocessing.cpu_count() // 2
