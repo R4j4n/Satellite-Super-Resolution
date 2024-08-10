@@ -12,7 +12,6 @@ def train_fn(loader, disc, gen, opt_gen, opt_disc, mse, bce, vgg_loss):
     gen_loss_total = 0
 
     for idx, (low_res, high_res) in enumerate(loop):
-        print(idx)
         high_res = high_res.to(cfg.device.device)
         low_res = low_res.to(cfg.device.device)
 
