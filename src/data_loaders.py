@@ -11,7 +11,7 @@ class SuperResolutionDataLoader(Dataset):
         self,
         paths,
         mean=[0.2903465, 0.31224626, 0.29810828],
-        std=[0.1457739, 0.13011318, 0.12317199],
+        std=[0.1445294, 0.1269224, 0.11904582],
         use: bool = False,
     ) -> None:
         super().__init__()

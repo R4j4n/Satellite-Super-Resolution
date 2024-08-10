@@ -67,8 +67,11 @@ class MeanSTDFinder:
         return {"mean": mean.numpy(), "std": std.numpy()}
 
 
-def show_image(train_paths):
+def show_image(train_paths, normalized=False):
+    if normalized:
+        dataset = SuperResolutionDataLoader(train_paths, use=normalized)
     dataset = SuperResolutionDataLoader(train_paths)
+
     loader = DataLoader(dataset, batch_size=2, num_workers=4)
     # Create a figure with two subplots
     fig, axs = plt.subplots(1, 2, figsize=(10, 5))
