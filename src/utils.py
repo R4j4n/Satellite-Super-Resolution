@@ -70,7 +70,9 @@ class MeanSTDFinder:
 def show_image(train_paths, normalized=False):
     if normalized:
         dataset = SuperResolutionDataLoader(train_paths, use=normalized)
-    dataset = SuperResolutionDataLoader(train_paths)
+        
+    else:
+        dataset = SuperResolutionDataLoader(train_paths)
 
     loader = DataLoader(dataset, batch_size=2, num_workers=4)
     # Create a figure with two subplots
