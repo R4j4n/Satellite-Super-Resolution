@@ -145,7 +145,7 @@ with col2:
             )
             st.image(predicted_lr)
 
-        with c3x:
-            st.markdown(""":red[**Original Image:**]""")
-            st.markdown(f""":orange[**Width, Height**] = :red[**{hr.size}**]""")
-            st.image(hr)
+            with c3x:
+                st.markdown(""":red[**Original Image:**]""")
+                st.markdown(f""":orange[**Width, Height**] = :red[**{hr.size}**]""")
+                st.image(hr)
